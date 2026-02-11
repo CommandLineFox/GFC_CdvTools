@@ -1,5 +1,5 @@
 import {Command, CommandOptionsRunTypeEnum, container} from "@sapphire/framework";
-import {ActionRowBuilder, MessageFlags, PermissionFlagsBits, StringSelectMenuBuilder, StringSelectMenuOptionBuilder} from "discord.js";
+import {ActionRowBuilder, MessageFlags, StringSelectMenuBuilder, StringSelectMenuOptionBuilder} from "discord.js";
 import {Config} from "../../config/config";
 import {BotClient} from "../../types/client";
 
@@ -11,7 +11,6 @@ export class AssignCommand extends Command {
             description: "Assign division roles to a specific user",
             detailedDescription: "Get a menu for assigning division roles to a user",
             runIn: CommandOptionsRunTypeEnum.GuildText,
-            requiredUserPermissions: [PermissionFlagsBits.Administrator],
             preconditions: ['UptimeCheck']
         });
     }
@@ -44,7 +43,24 @@ export class AssignCommand extends Command {
 
         const clientConfig = Config.getInstance().getClientConfig();
         if (!clientConfig.cdv) {
-            await interaction.editReply({ content: "This command can only be used by career development" });
+            await interaction.editReply({ content: "Couldn't find the cdv role" });
+            return;
+        }
+
+        const cdvRole = interaction.guild!.roles.cache.get(clientConfig.cdv);
+        if (!cdvRole) {
+            await interaction.editReply({ content: "Couldn't find the cdv role" });
+            return;
+        }
+
+        const member = await interaction.guild!.members.fetch(interaction.user.id);
+        if (!member) {
+            await interaction.editReply({ content: "Couldn't find the interaction member" });
+            return;
+        }
+
+        if (!member.roles.cache.has(cdvRole.id)) {
+            await interaction.editReply({ content: "Only career development can access this command" });
             return;
         }
 
@@ -64,8 +80,13 @@ export class AssignCommand extends Command {
             return;
         }
 
+        let countOfRoles = 0;
         const options = divisionRoles.map((role) => {
             const hasRole = targetMember.roles.cache.has(role.id);
+
+            if (hasRole) {
+                countOfRoles++;
+            }
 
             return new StringSelectMenuOptionBuilder()
                 .setLabel(role.name)
@@ -74,10 +95,15 @@ export class AssignCommand extends Command {
                 .setDefault(hasRole);
         });
 
+        if (countOfRoles > 4) {
+            await interaction.editReply({ content: "Please handle manually" });
+            return;
+        }
+
         const selectionMenu = new StringSelectMenuBuilder()
             .setCustomId(`assign-division-${targetUser.id}`)
             .setPlaceholder("Select up to 4 division roles to assign")
-            .setMinValues(1)
+            .setMinValues(0)
             .setMaxValues(Math.min(4, options.length))
             .addOptions(options);
 

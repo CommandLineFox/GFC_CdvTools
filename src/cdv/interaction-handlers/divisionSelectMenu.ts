@@ -39,7 +39,7 @@ export class DivisionSelectMenuHandler extends InteractionHandler {
             return;
         }
 
-        const member = await interaction.guild!.members.fetch(userId);
+        const member = await interaction.guild!.members.fetch({ user: userId, force: true });
         if (!member) {
             await interaction.editReply("Couldn't find the member.");
             return;
@@ -52,24 +52,21 @@ export class DivisionSelectMenuHandler extends InteractionHandler {
 
         const selectedIds = interaction.values;
 
-        const currentRoles = member.roles.cache;
+        const currentRoleIds = Array.from(member.roles.cache.keys());
+        const baseRoles = currentRoleIds.filter(id => !allDivisionIds.includes(id));
 
-        const rolesToAdd = selectedIds.filter(id => !currentRoles.has(id));
-
-        const rolesToRemove = allDivisionIds.filter((id: string) => currentRoles.has(id) && !selectedIds.includes(id));
+        const finalRoles = [...baseRoles, ...selectedIds];
 
         try {
-            if (rolesToAdd.length > 0) {
-                await member.roles.add(rolesToAdd);
-            }
-            if (rolesToRemove.length > 0) {
-                await member.roles.remove(rolesToRemove);
-            }
+            await member.roles.set(finalRoles);
 
-            await interaction.editReply(`Updated: Added ${rolesToAdd.length}, Removed ${rolesToRemove.length} roles.`);
+            const added = selectedIds.filter(id => !currentRoleIds.includes(id));
+            const removed = allDivisionIds.filter((id: string) => currentRoleIds.includes(id) && !selectedIds.includes(id));
+
+            await interaction.editReply(`Updated! Added: ${added.length}, Removed: ${removed.length}`);
         } catch (error) {
             this.container.logger.error(error);
-            await interaction.editReply("Error: Check hierarchy (Bot role must be above targeted roles).");
+            await interaction.editReply("Error: Check hierarchy!");
         }
     }
 }
