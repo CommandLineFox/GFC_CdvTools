@@ -1,5 +1,5 @@
 {
-  "name": "gfc_tickets",
+  "name": "gfc_cdvtools",
   "version": "1.0.0",
   "private": true,
   "description": "Utility bot for the GFC server",
@@ -26,10 +26,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/CommandLineFox/GFC_Tickets.git"
+    "url": "https://github.com/CommandLineFox/GFC_CdvTools.git"
   },
   "bugs": {
-    "url": "https://github.com/CommandLineFox/GFC_Tickets/issues"
+    "url": "https://github.com/CommandLineFox/GFC_CdvTools/issues"
   },
-  "homepage": "https://github.com/CommandLineFox/GFC_Tickets#readme"
+  "homepage": "https://github.com/CommandLineFox/GFC_CdvTools#readme"
 }
